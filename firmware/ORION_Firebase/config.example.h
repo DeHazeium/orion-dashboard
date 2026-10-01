@@ -13,3 +13,13 @@ constexpr int HUSKY_SCL_PIN = 22;
 constexpr float POWER_LIMIT_W = 10.0f;
 constexpr uint32_t WARNING_MS = 5000;
 constexpr bool DEBUG_LABELS = false;
+
+// HuskyLens 2 Object Recognition coordinates use a 640 x 480 frame.
+// Start with the full frame. Narrow this rectangle after checking where
+// people appear on the camera screen at your exhibition booth.
+constexpr int CAMERA_WIDTH = 640;
+constexpr int CAMERA_HEIGHT = 480;
+constexpr int ZONE_X_MIN = 0;
+constexpr int ZONE_Y_MIN = 0;
+constexpr int ZONE_X_MAX = 640;
+constexpr int ZONE_Y_MAX = 480;

@@ -18,13 +18,23 @@
 #include "config.h"
 #include "google_root_ca.h"
 
+static_assert(ZONE_X_MIN >= 0 && ZONE_X_MIN < ZONE_X_MAX && ZONE_X_MAX <= CAMERA_WIDTH, "Invalid monitored area X bounds");
+static_assert(ZONE_Y_MIN >= 0 && ZONE_Y_MIN < ZONE_Y_MAX && ZONE_Y_MAX <= CAMERA_HEIGHT, "Invalid monitored area Y bounds");
+
+struct Detection {
+  char label[32];
+  int16_t x, y, width, height;
+  bool inZone;
+};
+
 struct Reading {
   float voltage, current, power, energy, frequency, pf;
-  int people;
+  int people, peopleOutsideZone, detectionCount;
+  Detection detections[MAX_RESULT_NUM];
   bool cameraOnline, labelsValid, pzemOnline;
   uint32_t unattendedMs;
   uint32_t capturedAtMs;
-  int64_t sampledAt;
+  int64_t sampledAt, lastPersonSeenAt;
 };
 
 PZEM004Tv30 pzem(Serial2, PZEM_RX_PIN, PZEM_TX_PIN);
@@ -34,6 +44,7 @@ bool cameraReady = false;
 bool timing = false;
 uint32_t unattendedSince = 0;
 uint32_t nextCameraAttempt = 0;
+int64_t lastPersonSeenAt = 0;
 const char *monitorStatus = "Starting";
 
 int64_t epochMillis() {
@@ -84,8 +95,26 @@ void uploadTask(void *parameter) {
     doc["cameraOnline"] = r.cameraOnline;
     doc["labelsValid"] = r.labelsValid;
     doc["pzemOnline"] = r.pzemOnline;
+    doc["lastPersonSeenAt"] = r.lastPersonSeenAt > 0 ? r.lastPersonSeenAt : 0;
+    doc["zone"]["frameWidth"] = CAMERA_WIDTH;
+    doc["zone"]["frameHeight"] = CAMERA_HEIGHT;
+    doc["zone"]["xMin"] = ZONE_X_MIN;
+    doc["zone"]["yMin"] = ZONE_Y_MIN;
+    doc["zone"]["xMax"] = ZONE_X_MAX;
+    doc["zone"]["yMax"] = ZONE_Y_MAX;
     if (r.cameraOnline && r.labelsValid) doc["people"] = r.people;
     else doc["people"] = nullptr;
+    doc["peopleOutsideZone"] = r.cameraOnline && r.labelsValid ? r.peopleOutsideZone : 0;
+    JsonArray detections = doc["detections"].to<JsonArray>();
+    if (r.cameraOnline && r.labelsValid) for (int i = 0; i < r.detectionCount; i++) {
+      JsonObject item = detections.add<JsonObject>();
+      item["label"] = r.detections[i].label;
+      item["x"] = r.detections[i].x;
+      item["y"] = r.detections[i].y;
+      item["width"] = r.detections[i].width;
+      item["height"] = r.detections[i].height;
+      item["inZone"] = r.detections[i].inZone;
+    }
     if (r.pzemOnline) {
       doc["voltage"] = r.voltage; doc["current"] = r.current;
       doc["power"] = r.power; doc["energy"] = r.energy;
@@ -122,6 +151,7 @@ void setup() {
 
 void loop() {
   Reading r{};
+  r.lastPersonSeenAt = lastPersonSeenAt;
   r.voltage = pzem.voltage(); r.current = pzem.current();
   r.power = pzem.power(); r.energy = pzem.energy();
   r.frequency = pzem.frequency(); r.pf = pzem.pf();
@@ -161,11 +191,25 @@ void loop() {
     String label = result->name; label.trim();
     if (DEBUG_LABELS) Serial.printf("ID=%u | Label='%s'\n", (unsigned)result->ID, label.c_str());
     if (label.length() == 0) r.labelsValid = false;
-    else if (label.equalsIgnoreCase("person")) r.people++;
+    else {
+      Detection &d = r.detections[r.detectionCount++];
+      label.toCharArray(d.label, sizeof(d.label));
+      d.x = result->xCenter; d.y = result->yCenter;
+      d.width = result->width; d.height = result->height;
+      d.inZone = d.x >= ZONE_X_MIN && d.x <= ZONE_X_MAX && d.y >= ZONE_Y_MIN && d.y <= ZONE_Y_MAX;
+      if (label.equalsIgnoreCase("person")) {
+        if (d.inZone) r.people++;
+        else r.peopleOutsideZone++;
+      }
+    }
   }
   // Incomplete / unlabeled results cannot prove the absence of a person.
   if (objects > returnedResults) r.labelsValid = false;
   if (r.people > 0) r.labelsValid = true; // A known person is sufficient to clear the warning.
+  if (r.people > 0 && epochMillis() >= 1735689600000LL) {
+    lastPersonSeenAt = epochMillis();
+    r.lastPersonSeenAt = lastPersonSeenAt;
+  }
 
   if (!r.labelsValid) { timing = false; monitorStatus = "Missing object labels - warning paused"; }
   else if (!r.pzemOnline) { timing = false; monitorStatus = "PZEM read failed - warning paused"; }
