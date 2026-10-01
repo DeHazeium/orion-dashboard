@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1117">
+  <meta name="description" content="ORION — live energy and person presence monitoring.">
+  <title>ORION · Energy with awareness</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="ORION home"><img src="./favicon.svg" alt="" width="38" height="38"><span>ORION<span class="brand-caption">ENERGY WITH AWARENESS</span></span></a>
+      <div class="header-right"><span class="project-tag">PERSONAL POWER MONITOR</span><span id="connection" class="badge neutral"><i></i>Connecting</span><button id="setup-button" class="icon-button" aria-label="Open setup guide" title="Setup guide">?</button></div>
+    </header>
+
+    <div id="demo-banner" class="demo-banner" hidden><span><strong>Demo preview</strong> · Simulated readings. No data is sent to Firebase.</span><label>Scenario <select id="demo-scenario"><option value="present">Person present</option><option value="away">Person leaves</option><option value="warning">Unattended warning</option><option value="fault">Camera unavailable</option><option value="offline">Device offline</option></select></label></div>
+
+    <main>
+      <section class="page-heading"><div><div class="eyebrow"><span class="tiny-square"></span> YOUR SPACE, AT A GLANCE</div><h1>Energy overview<span>.</span></h1><p>See what’s on. Know when someone’s there.</p></div><div class="heading-meta"><span id="today"></span><a id="mode-link" href="?demo=1">Explore demo <span aria-hidden="true">↗</span></a></div></section>
+
+      <section id="status-banner" class="status-banner neutral" role="status" aria-live="polite"><div class="status-icon" id="status-icon">—</div><div><strong id="status-title">Waiting for your ESP32</strong><p id="status-detail">Your readings will appear when the device sends its first update.</p></div><span class="status-code" id="status-code">STANDBY</span></section>
+
+      <div class="primary-grid">
+        <section class="panel power-panel" aria-labelledby="power-heading">
+          <div class="panel-heading"><h2 id="power-heading"><span class="label-icon">ϟ</span> Live power</h2><span class="muted small" id="chart-window">Last 5 minutes</span></div>
+          <div class="power-summary"><div><span id="power-value" class="power-value">—</span><span class="power-unit">W</span><p class="muted">Instantaneous consumption</p></div><div class="power-note"><span class="line-key"></span> Active power<br><span class="threshold-note">Warning above <b id="threshold-label">—</b></span></div></div>
+          <div class="chart-wrap"><canvas id="power-chart" aria-label="Power readings from this browser session" role="img"></canvas><div id="chart-empty" class="chart-empty"><span class="empty-orbit">◌</span><strong>Ready when you are</strong><span>Waiting for live power readings</span></div></div>
+          <div class="chart-footer"><span id="chart-start">Session history</span><span id="chart-end">NOW</span></div>
+        </section>
+
+        <section class="panel presence-panel" aria-labelledby="presence-heading">
+          <div class="panel-heading"><h2 id="presence-heading">Person presence</h2><span class="micro-label">AI VISION</span></div>
+          <div id="presence-visual" class="presence-visual unknown"><div class="radar-ring ring-one"></div><div class="radar-ring ring-two"></div><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="21" r="9"/><path d="M16 51v-6a16 16 0 0 1 32 0v6M25 50v-9m14 9v-9"/></svg><span id="person-count" class="person-count">—</span></div>
+          <h3 id="presence-title">Looking for a signal</h3><p id="presence-detail" class="muted">Person detection is not available yet.</p>
+          <div class="countdown"><div class="countdown-label"><span>Unattended timer</span><span id="timer-label">— / 5s</span></div><div id="timer-track" class="timer-track" role="progressbar" aria-label="Unattended warning timer" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0"><span id="timer-fill"></span></div><p id="timer-note">A warning needs valid power and camera readings.</p></div>
+        </section>
+      </div>
+
+      <section class="metrics-grid" aria-label="Electrical measurements">
+        <article class="panel metric"><div class="metric-label"><span>Voltage</span><span class="metric-symbol">V</span></div><div class="metric-reading"><strong id="voltage-value">—</strong><span>V</span></div><p>Supply voltage</p></article>
+        <article class="panel metric"><div class="metric-label"><span>Current</span><span class="metric-symbol">A</span></div><div class="metric-reading"><strong id="current-value">—</strong><span>A</span></div><p>Current draw</p></article>
+        <article class="panel metric"><div class="metric-label"><span>Energy</span><span class="metric-symbol">↗</span></div><div class="metric-reading"><strong id="energy-value">—</strong><span>kWh</span></div><p>PZEM cumulative total</p></article>
+        <article class="panel metric"><div class="metric-label"><span>Frequency</span><span class="metric-symbol">∿</span></div><div class="metric-reading"><strong id="frequency-value">—</strong><span>Hz</span></div><p>Line frequency</p></article>
+        <article class="panel metric"><div class="metric-label"><span>Power factor</span><span class="metric-symbol">φ</span></div><div class="metric-reading"><strong id="pf-value">—</strong><span>PF</span></div><p>Real / apparent power</p></article>
+      </section>
+
+      <div class="secondary-grid">
+        <section class="panel activity-panel"><div class="panel-heading"><h2>Activity</h2><span class="muted small">This browser session</span></div><ol id="activity-list" class="activity-list"><li class="empty-activity">Status changes will appear here.</li></ol></section>
+        <section class="panel system-panel"><div class="panel-heading"><h2>System status</h2><span class="micro-label">ORION / 01</span></div><div class="system-row"><span><i class="device-icon">◈</i> ESP32</span><span id="esp-health" class="health neutral">Waiting</span></div><div class="system-row"><span><i class="device-icon">ϟ</i> PZEM-004T</span><span id="pzem-health" class="health neutral">Unknown</span></div><div class="system-row"><span><i class="device-icon">◎</i> HuskyLens 2</span><span id="camera-health" class="health neutral">Unknown</span></div><div class="last-update"><span>Last measurement</span><span id="last-update">Not received</span></div></section>
+      </div>
+    </main>
+
+    <footer><span><span class="footer-dot"></span> Awareness starts with a little data.</span><span>ESP32 <b>→</b> Firebase <b>→</b> ORION</span></footer>
+  </div>
+  <dialog id="setup-dialog"><form method="dialog"><div class="dialog-heading"><h2>Connect your ORION</h2><button class="icon-button" aria-label="Close setup guide">×</button></div></form><p>Upload the included ESP32 sketch with your Wi-Fi details. This dashboard listens for its readings automatically.</p><ol><li>Install <strong>PZEM004Tv30</strong>, <strong>DFRobot_HuskylensV2</strong> and <strong>ArduinoJson 7</strong>.</li><li>Copy <code>config.example.h</code> to <code>config.h</code> in the sketch folder and enter your Wi-Fi details.</li><li>Upload <code>ORION_Firebase.ino</code>. Open Serial Monitor at <strong>115200</strong>.</li></ol><div class="setup-path">Firebase path <code>/orion/latest</code></div><p class="small muted">Defaults: 10 W threshold · 5-second warning · person labels only. A camera fault or stale readings pause the warning. See the included README for wiring and GitHub Pages setup.</p><p class="small setup-warning">Your current Firebase test rules allow public reads and writes until 30 October 2026. Add authentication before permanent public use.</p></dialog>
+  <noscript><div class="noscript">Enable JavaScript to connect to Firebase and display readings.</div></noscript>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
