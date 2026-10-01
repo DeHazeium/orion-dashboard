@@ -30,6 +30,80 @@ function recordActivity(state) {
 
 function health(id, text, tone = 'neutral') { setText(id, text); $(id).className = `health ${tone}`; }
 
+function renderVision(fresh, cameraOK) {
+  const zone = latest?.zone;
+  const validZone = zone && ['frameWidth', 'frameHeight', 'xMin', 'yMin', 'xMax', 'yMax'].every(key => Number.isInteger(zone[key]))
+    && zone.frameWidth > 0 && zone.frameHeight > 0 && zone.xMin >= 0 && zone.yMin >= 0
+    && zone.xMin < zone.xMax && zone.xMax <= zone.frameWidth && zone.yMin < zone.yMax && zone.yMax <= zone.frameHeight;
+  const hasDetectionData = Array.isArray(latest?.detections);
+  const usable = fresh && cameraOK && validZone && hasDetectionData;
+  const fullFrame = validZone && zone.xMin === 0 && zone.yMin === 0 && zone.xMax === zone.frameWidth && zone.yMax === zone.frameHeight;
+  setText('zone-mode', validZone ? fullFrame ? 'Full frame' : 'Custom area' : 'Awaiting setup');
+  setText('zone-frame-size', validZone ? `${zone.frameWidth} × ${zone.frameHeight}` : 'Camera frame');
+  $('zone-inner').hidden = !validZone;
+  if (validZone) {
+    const inner = $('zone-inner');
+    inner.style.left = `${zone.xMin / zone.frameWidth * 100}%`;
+    inner.style.top = `${zone.yMin / zone.frameHeight * 100}%`;
+    inner.style.right = `${(1 - zone.xMax / zone.frameWidth) * 100}%`;
+    inner.style.bottom = `${(1 - zone.yMax / zone.frameHeight) * 100}%`;
+  }
+  const detections = usable ? latest.detections.slice(0, 10).filter(item => item && typeof item.label === 'string' && item.label.trim()
+    && finite(item.x) && finite(item.y) && item.x >= 0 && item.x <= zone.frameWidth && item.y >= 0 && item.y <= zone.frameHeight) : [];
+  const markers = detections.map(item => {
+    const marker = document.createElement('span');
+    const person = item.label.trim().toLowerCase() === 'person';
+    const inside = item.x >= zone.xMin && item.x <= zone.xMax && item.y >= zone.yMin && item.y <= zone.yMax;
+    marker.className = `detection-marker ${person ? inside ? 'person' : 'outside' : 'object'}`;
+    marker.style.left = `${item.x / zone.frameWidth * 100}%`;
+    marker.style.top = `${item.y / zone.frameHeight * 100}%`;
+    marker.title = `${item.label.trim()} · ${person ? inside ? 'inside monitored area' : 'outside monitored area' : 'visible object'}`;
+    marker.setAttribute('aria-label', marker.title);
+    return marker;
+  });
+  $('detection-markers').replaceChildren(...markers);
+  const outsideCount = usable && Number.isInteger(latest.peopleOutsideZone) ? latest.peopleOutsideZone : 0;
+  setText('zone-detail', !fresh ? 'Waiting for a fresh device reading.' : !cameraOK ? 'Camera unavailable. Position and occupancy are unknown.' : !usable ? 'Upload the updated firmware to show object positions and the monitored area.' : `${latest.people} ${latest.people === 1 ? 'person' : 'people'} inside · ${outsideCount} outside · ${detections.length} total detections`);
+
+  const grouped = new Map();
+  for (const item of detections) {
+    const name = item.label.trim().slice(0, 31);
+    const key = name.toLowerCase();
+    grouped.set(key, { name, count: (grouped.get(key)?.count || 0) + 1 });
+  }
+  setText('object-total', usable ? `${detections.length} detected` : '—');
+  if (!usable || grouped.size === 0) {
+    const message = document.createElement('p');
+    message.className = 'muted';
+    message.textContent = !fresh ? 'Waiting for live camera labels.' : !cameraOK ? 'Camera unavailable. Object labels are unknown.' : !usable ? 'Upload the updated firmware to see detected labels.' : 'No objects recognized in the current view.';
+    $('objects-list').replaceChildren(message);
+  } else {
+    $('objects-list').replaceChildren(...Array.from(grouped.values(), ({ name, count }) => {
+      const chip = document.createElement('span'); chip.className = 'object-chip';
+      chip.append(document.createTextNode(name));
+      if (count > 1) { const quantity = document.createElement('b'); quantity.textContent = `× ${count}`; chip.append(quantity); }
+      return chip;
+    }));
+  }
+
+  const seenAt = latest?.lastPersonSeenAt;
+  const validSeen = finite(seenAt) && seenAt > 1735689600000 && seenAt <= now() + 5000;
+  if (validSeen) {
+    const age = Math.max(0, now() - seenAt);
+    const value = age < 5000 ? 'Just now' : age < 60000 ? `${Math.floor(age / 1000)} seconds ago` : age < 3600000 ? `${Math.floor(age / 60000)} min ago` : age < 86400000 ? `${Math.floor(age / 3600000)} hr ago` : new Date(seenAt).toLocaleDateString();
+    setText('last-seen-value', value);
+    setText('last-seen-detail', `${time(seenAt)} · Last recorded in the monitored area${fresh ? '' : ' (device data is stale)'}.`);
+  } else {
+    setText('last-seen-value', 'Not recorded');
+    setText('last-seen-detail', fresh ? 'No person recorded in this area since the device started.' : 'Waiting for a fresh device reading.');
+  }
+
+  const cameraState = !fresh ? latest ? 'Device offline' : 'Waiting for device' : latest.cameraOnline !== true ? 'Camera unavailable' : latest.labelsValid !== true ? 'Labels unavailable' : 'Camera online';
+  setText('camera-status-value', cameraState);
+  setText('camera-status-detail', cameraState === 'Camera online' ? `Object Recognition active · Last reading ${time(latest.sampledAt)}.` : cameraState === 'Labels unavailable' ? 'Warning paused until object labels are valid.' : cameraState === 'Camera unavailable' ? 'Warning paused while HuskyLens reconnects.' : 'Vision decisions are paused until fresh data arrives.');
+  $('camera-status-icon').className = `insight-icon ${cameraState === 'Camera online' ? '' : cameraState === 'Waiting for device' || cameraState === 'Device offline' ? 'neutral' : 'bad'}`;
+}
+
 function render() {
   const state = classify(latest, { now: now(), connected, error });
   const fresh = latest && connected && !error && measurementAge(latest, now()) <= STALE_MS && measurementAge(latest, now()) >= -5000 && latest.schemaVersion === 1;
@@ -60,6 +134,7 @@ function render() {
   health('pzem-health', !fresh ? 'Unknown' : latest.pzemOnline === true ? 'Connected' : 'Read error', !fresh ? 'neutral' : latest.pzemOnline === true ? 'good' : 'bad');
   health('camera-health', !fresh ? 'Unknown' : cameraOK ? 'Connected' : latest.cameraOnline === true ? 'Label error' : 'Unavailable', !fresh ? 'neutral' : cameraOK ? 'good' : 'bad');
   setText('last-update', finite(latest?.sampledAt) ? time(latest.sampledAt) : 'Not received');
+  renderVision(fresh, cameraOK);
   recordActivity(state);
   drawChart();
 }
@@ -91,7 +166,7 @@ function drawChart() {
   ctx.font = '10px "DM Sans", sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = '#93a2ae'; ctx.lineWidth = 1;
   for (let n = 0; n <= 4; n++) { const value = max * n / 4, yp = y(value); ctx.strokeStyle = '#26333b'; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(left, yp); ctx.lineTo(width - right, yp); ctx.stroke(); ctx.fillText(`${Math.round(value)}`, width - 1, yp + 3); }
   ctx.setLineDash([]);
-  const gradient = ctx.createLinearGradient(0, top, 0, height); gradient.addColorStop(0, '#97edc536'); gradient.addColorStop(1, '#97edc500');
+  const gradient = ctx.createLinearGradient(0, top, 0, height); gradient.addColorStop(0, '#d9ee5b36'); gradient.addColorStop(1, '#d9ee5b00');
   // Draw separate runs so a sensor failure or a long telemetry gap is never bridged.
   const runs = []; let run = [];
   for (const point of visible) {
@@ -101,9 +176,9 @@ function drawChart() {
   if (run.length) runs.push(run);
   for (const segment of runs) {
     ctx.beginPath(); ctx.moveTo(x(segment[0].t), height - bottom); for (const p of segment) ctx.lineTo(x(p.t), y(p.p)); ctx.lineTo(x(segment.at(-1).t), height - bottom); ctx.closePath(); ctx.fillStyle = gradient; ctx.fill();
-    ctx.beginPath(); segment.forEach((p, i) => i ? ctx.lineTo(x(p.t), y(p.p)) : ctx.moveTo(x(p.t), y(p.p))); ctx.strokeStyle = '#97edc5'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.beginPath(); segment.forEach((p, i) => i ? ctx.lineTo(x(p.t), y(p.p)) : ctx.moveTo(x(p.t), y(p.p))); ctx.strokeStyle = '#d9ee5b'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
   }
-  if (valid.length) { const p = valid.at(-1); ctx.beginPath(); ctx.arc(x(p.t), y(p.p), 4, 0, Math.PI * 2); ctx.fillStyle = '#bdffdb'; ctx.fill(); }
+  if (valid.length) { const p = valid.at(-1); ctx.beginPath(); ctx.arc(x(p.t), y(p.p), 4, 0, Math.PI * 2); ctx.fillStyle = '#e9ff96'; ctx.fill(); }
   $('chart-empty').hidden = valid.length > 0;
   canvas.setAttribute('aria-label', valid.length ? `Power chart, ${valid.length} readings in the last five minutes; latest ${number(valid.at(-1).p)} watts.` : 'No power readings received in the last five minutes.');
   setText('chart-start', new Date(start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -131,10 +206,18 @@ function startDemo() {
   $('demo-banner').hidden = false; $('mode-link').href = location.pathname; $('mode-link').textContent = 'Return to live ↗';
   connected = true;
   let awaySince = Date.now();
+  let demoLastSeenAt = Date.now();
+  const zone = { frameWidth: 640, frameHeight: 480, xMin: 64, yMin: 48, xMax: 576, yMax: 432 };
   const sample = () => {
     const scenario = $('demo-scenario').value;
     const elapsed = scenario === 'warning' ? 5000 : scenario === 'away' ? Math.min(Date.now() - awaySince, 5000) : 0;
-    receive({ schemaVersion: 1, sampledAt: Date.now() - (scenario === 'offline' ? 30000 : 0), power: 77.4 + 4 * Math.sin(Date.now() / 4100), voltage: 233.1, current: 0.348, energy: 1.284, frequency: 50.0, pf: 0.96, people: scenario === 'present' ? 1 : 0, cameraOnline: scenario !== 'fault', labelsValid: scenario !== 'fault', pzemOnline: true, thresholdW: 10, warningDelayMs: 5000, unattendedMs: elapsed });
+    if (scenario === 'present') demoLastSeenAt = Date.now();
+    const detections = scenario === 'fault' ? [] : [
+      { label: 'TV', x: 482, y: 154, width: 110, height: 78, inZone: true },
+      { label: 'laptop', x: 178, y: 334, width: 98, height: 65, inZone: true },
+      ...(scenario === 'present' ? [{ label: 'person', x: 316, y: 228, width: 86, height: 270, inZone: true }] : scenario === 'away' ? [{ label: 'person', x: 30, y: 210, width: 60, height: 250, inZone: false }] : [])
+    ];
+    receive({ schemaVersion: 1, sampledAt: Date.now() - (scenario === 'offline' ? 30000 : 0), power: 77.4 + 4 * Math.sin(Date.now() / 4100), voltage: 233.1, current: 0.348, energy: 1.284, frequency: 50.0, pf: 0.96, people: scenario === 'present' ? 1 : 0, peopleOutsideZone: scenario === 'away' ? 1 : 0, cameraOnline: scenario !== 'fault', labelsValid: scenario !== 'fault', pzemOnline: true, thresholdW: 10, warningDelayMs: 5000, unattendedMs: elapsed, zone, lastPersonSeenAt: demoLastSeenAt, detections });
   };
   for (let i = 150; i > 0; i--) points.push({ t: Date.now() - i * 2000, p: 77 + 4 * Math.sin(i / 8) + 2 * Math.cos(i / 2) });
   $('demo-scenario').addEventListener('change', () => { awaySince = Date.now(); sample(); });

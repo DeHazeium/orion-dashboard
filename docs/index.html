@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1117">
-  <meta name="description" content="ORION — live energy and person presence monitoring.">
+  <meta name="theme-color" content="#111310">
+  <meta name="description" content="ORION — live AI vision and energy monitoring.">
   <title>ORION · Energy with awareness</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./vision.css">
 </head>
 <body>
   <div class="shell">
@@ -19,7 +20,7 @@
     <div id="demo-banner" class="demo-banner" hidden><span><strong>Demo preview</strong> · Simulated readings. No data is sent to Firebase.</span><label>Scenario <select id="demo-scenario"><option value="present">Person present</option><option value="away">Person leaves</option><option value="warning">Unattended warning</option><option value="fault">Camera unavailable</option><option value="offline">Device offline</option></select></label></div>
 
     <main>
-      <section class="page-heading"><div><div class="eyebrow"><span class="tiny-square"></span> YOUR SPACE, AT A GLANCE</div><h1>Energy overview<span>.</span></h1><p>See what’s on. Know when someone’s there.</p></div><div class="heading-meta"><span id="today"></span><a id="mode-link" href="?demo=1">Explore demo <span aria-hidden="true">↗</span></a></div></section>
+      <section class="page-heading hero" aria-label="ORION overview"><div class="hero-copy"><div class="eyebrow"><span class="tiny-square"></span> THE INTELLIGENT ROOM</div><h1>Power, with<br>perspective<span>.</span></h1><p>Energy meets AI vision. See what is in view, who is in the monitored area, and when power may be unattended.</p><div class="hero-tags"><span>◉ LIVE MONITORING</span><span>✳ AI VISION</span></div></div><div class="heading-meta"><span id="today"></span><a id="mode-link" href="?demo=1">Explore demo <span aria-hidden="true">↗</span></a></div><span class="image-credit">AI-generated interior illustration</span></section>
 
       <section id="status-banner" class="status-banner neutral" role="status" aria-live="polite"><div class="status-icon" id="status-icon">—</div><div><strong id="status-title">Waiting for your ESP32</strong><p id="status-detail">Your readings will appear when the device sends its first update.</p></div><span class="status-code" id="status-code">STANDBY</span></section>
 
@@ -39,6 +40,27 @@
         </section>
       </div>
 
+      <section class="vision-intro"><div><div class="eyebrow"><span class="tiny-square"></span> HUSKYLENS 2 / OBJECT RECOGNITION</div><h2>What the AI sees</h2><p>Live labels and positions from the camera. ORION counts only people inside your monitored area.</p></div><span class="micro-label">NO CAMERA IMAGES UPLOADED</span></section>
+      <div class="vision-grid">
+        <section class="panel zone-panel" aria-labelledby="zone-heading">
+          <div class="panel-heading"><h2 id="zone-heading">Monitored area</h2><span id="zone-mode" class="vision-pill">Full frame</span></div>
+          <p class="card-subtitle">A position map from HuskyLens coordinates. This is not live video.</p>
+          <div class="zone-stage" id="zone-stage" aria-label="Camera detection position map"><div class="zone-inner" id="zone-inner"><span>ACTIVE AREA</span></div><div id="detection-markers" class="detection-markers"></div><span class="zone-corner top-left">0, 0</span><span id="zone-frame-size" class="zone-corner bottom-right">640 × 480</span></div>
+          <div class="zone-legend"><span><i class="legend-dot lime"></i>Person in area</span><span><i class="legend-dot outline"></i>Person outside</span><span><i class="legend-dot muted-dot"></i>Other object</span></div>
+          <p id="zone-detail" class="zone-detail">Waiting for camera coordinates.</p>
+        </section>
+        <section class="panel objects-panel" aria-labelledby="objects-heading">
+          <div class="panel-heading"><h2 id="objects-heading">Visible objects</h2><span id="object-total" class="vision-pill">—</span></div>
+          <div class="objects-art"><div class="objects-art-copy"><span>AI VISION</span><strong>Objects in focus.</strong><small>Illustration · live detections below</small></div></div>
+          <div id="objects-list" class="objects-list"><p class="muted">Waiting for camera labels.</p></div>
+          <p id="objects-explanation" class="objects-explanation">HuskyLens identifies visible objects. PZEM measures total power; ORION cannot identify which object is consuming it.</p>
+        </section>
+      </div>
+      <div class="insight-grid">
+        <section class="panel insight-card" aria-labelledby="last-seen-heading"><div class="insight-icon">◷</div><div><span class="micro-label">OCCUPANCY MEMORY</span><h2 id="last-seen-heading">Last person seen</h2><strong id="last-seen-value">—</strong><p id="last-seen-detail">Waiting for a valid camera reading.</p></div></section>
+        <section class="panel insight-card" aria-labelledby="camera-status-heading"><div id="camera-status-icon" class="insight-icon">◎</div><div><span class="micro-label">VISION SYSTEM</span><h2 id="camera-status-heading">Camera status</h2><strong id="camera-status-value">Waiting</strong><p id="camera-status-detail">HuskyLens 2 has not sent a reading yet.</p></div></section>
+      </div>
+
       <section class="metrics-grid" aria-label="Electrical measurements">
         <article class="panel metric"><div class="metric-label"><span>Voltage</span><span class="metric-symbol">V</span></div><div class="metric-reading"><strong id="voltage-value">—</strong><span>V</span></div><p>Supply voltage</p></article>
         <article class="panel metric"><div class="metric-label"><span>Current</span><span class="metric-symbol">A</span></div><div class="metric-reading"><strong id="current-value">—</strong><span>A</span></div><p>Current draw</p></article>
@@ -55,7 +77,7 @@
 
     <footer><span><span class="footer-dot"></span> Awareness starts with a little data.</span><span>ESP32 <b>→</b> Firebase <b>→</b> ORION</span></footer>
   </div>
-  <dialog id="setup-dialog"><form method="dialog"><div class="dialog-heading"><h2>Connect your ORION</h2><button class="icon-button" aria-label="Close setup guide">×</button></div></form><p>Upload the included ESP32 sketch with your Wi-Fi details. This dashboard listens for its readings automatically.</p><ol><li>Install <strong>PZEM004Tv30</strong>, <strong>DFRobot_HuskylensV2</strong> and <strong>ArduinoJson 7</strong>.</li><li>Copy <code>config.example.h</code> to <code>config.h</code> in the sketch folder and enter your Wi-Fi details.</li><li>Upload <code>ORION_Firebase.ino</code>. Open Serial Monitor at <strong>115200</strong>.</li></ol><div class="setup-path">Firebase path <code>/orion/latest</code></div><p class="small muted">Defaults: 10 W threshold · 5-second warning · person labels only. A camera fault or stale readings pause the warning. See the included README for wiring and GitHub Pages setup.</p><p class="small setup-warning">Your current Firebase test rules allow public reads and writes until 30 October 2026. Add authentication before permanent public use.</p></dialog>
+  <dialog id="setup-dialog"><form method="dialog"><div class="dialog-heading"><h2>Connect your ORION</h2><button class="icon-button" aria-label="Close setup guide">×</button></div></form><p>Upload the included ESP32 sketch with your Wi-Fi details. This dashboard listens for its readings automatically.</p><ol><li>Install <strong>PZEM004Tv30</strong>, <strong>DFRobot_HuskylensV2</strong> and <strong>ArduinoJson 7</strong>.</li><li>Copy <code>config.example.h</code> to <code>config.h</code> in the sketch folder and enter your Wi-Fi details.</li><li>Set <code>ZONE_X_MIN</code>, <code>ZONE_Y_MIN</code>, <code>ZONE_X_MAX</code> and <code>ZONE_Y_MAX</code> if you want a smaller monitored area. The default is the full frame.</li><li>Upload <code>ORION_Firebase.ino</code>. Open Serial Monitor at <strong>115200</strong>.</li></ol><div class="setup-path">Firebase path <code>/orion/latest</code></div><p class="small muted">Defaults: 10 W threshold · 5-second warning · only people inside the monitored area clear the warning. A camera fault or stale readings pause the warning. See the included README for wiring and GitHub Pages setup.</p><p class="small setup-warning">Your current Firebase test rules allow public reads and writes until 30 October 2026. Object labels, positions and the last-person timestamp are publicly readable while these rules apply. Add authentication before permanent public use.</p></dialog>
   <noscript><div class="noscript">Enable JavaScript to connect to Firebase and display readings.</div></noscript>
   <script type="module" src="./app.js"></script>
 </body>
