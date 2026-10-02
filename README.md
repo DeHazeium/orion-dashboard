@@ -12,9 +12,8 @@ The dashboard is preconfigured for **orionai-552ed**. Firebase receives readings
 
 1. In Arduino IDE, install **esp32 by Espressif Systems**. Choose **ESP32 Dev Module** for your existing board.
 2. Install **PZEM004Tv30 by Jakub Mandula**, **DFRobot_HuskylensV2**, and **ArduinoJson 7**. Use the HuskyLens **V2** library, not the original HuskyLens library. If a sensor library is absent from Library Manager, download its ZIP from the official repository linked below and use **Sketch → Include Library → Add .ZIP Library**.
-3. Open `firmware/ORION_Firebase/ORION_Firebase.ino`.
-4. In that same folder, copy `config.example.h` to `config.h`. Enter your Wi-Fi name and password in `config.h`. Leave the Firebase URL as supplied. If you already have a private `config.h` from the previous version, add the new `CAMERA_WIDTH`, `CAMERA_HEIGHT` and `ZONE_*` constants from `config.example.h` to it.
-5. Upload, then open Serial Monitor at **115200 baud**. Internet access is required for Wi-Fi, clock synchronization and Firebase uploads. Use a 2.4 GHz Wi-Fi network supported by your ESP32.
+3. Open the self-contained `firmware/ORION_Complete/ORION_Complete.ino` sketch. Enter your Wi-Fi name and password in the two placeholders at the top. The Firebase URL and trusted Google root certificates are included in this one file. Keep your edited copy with real credentials private.
+4. Upload, then open Serial Monitor at **115200 baud**. Internet access is required for Wi-Fi, clock synchronization and Firebase uploads. Use a 2.4 GHz Wi-Fi network supported by your ESP32.
 
 Keep your working sensor wiring. The defaults are:
 
@@ -28,14 +27,14 @@ Keep your working sensor wiring. The defaults are:
 
 Continue powering HuskyLens 2 through its USB-C port and use its **I2C protocol**. The sketch selects **Object Recognition** and waits five seconds for the model to load. It does not use LCD, a relay, face recognition or camera image uploads. Follow the PZEM module's documented power and logic-level requirements; the table above covers signal pins only.
 
-Defaults in `config.h`:
+Defaults in `ORION_Complete.ino`:
 
 ```cpp
 constexpr float POWER_LIMIT_W = 10.0f;
 constexpr uint32_t WARNING_MS = 5000;
 ```
 
-The warning requires valid camera and PZEM readings, power **above 10 W**, and no detected person **inside the monitored area** for **five seconds**. A person inside the area, low power or sensor error resets the timer. The default area covers the whole 640 × 480 camera coordinate frame. To exclude a doorway or corridor, adjust `ZONE_X_MIN`, `ZONE_Y_MIN`, `ZONE_X_MAX`, and `ZONE_Y_MAX` in `config.h`, then flash again. Compare the dashboard position map against the camera screen and test with a person at every edge of your intended area. A missing detection cannot prove an entire room is empty.
+The warning requires valid camera and PZEM readings, power **above 10 W**, and no detected person **inside the monitored area** for **five seconds**. A person inside the area, low power or sensor error resets the timer. The default area covers the whole 640 × 480 camera coordinate frame. To exclude a doorway or corridor, adjust `ZONE_X_MIN`, `ZONE_Y_MIN`, `ZONE_X_MAX`, and `ZONE_Y_MAX` in the sketch, then flash again. Compare the dashboard position map against the camera screen and test with a person at every edge of your intended area. A missing detection cannot prove an entire room is empty.
 
 `lastPersonSeenAt` is the time a person was last detected **inside** the area since the current ESP32 boot and after its clock synchronized. Object labels and coordinates come from the camera; PZEM measures only **total** power. ORION does not predict which object is switched on or attribute watts to a particular appliance. No camera frames or photos are uploaded to Firebase.
 
@@ -63,11 +62,11 @@ The ESP32 creates `/orion/latest` with its first successful upload. Do not manua
 
 No npm install, build command, Firebase Hosting or GitHub Actions workflow is needed. All asset paths are relative so a GitHub project subpath works.
 
-**Never upload `config.h` containing Wi-Fi credentials.** `.gitignore` protects normal Git operations, but GitHub's drag-and-drop uploader does not use your local ignore rules. The ZIP contains only `config.example.h` with placeholders. Only `docs` is published as the website.
+**Never upload your edited sketch with real Wi-Fi credentials.** The public repository includes only placeholder credentials. GitHub's drag-and-drop uploader does not use `.gitignore`. Only `docs` is published as the website.
 
 ## Preview and behavior
 
-Use the site's **Explore demo** link (or append `?demo=1`) to preview person, crowded room, absent, warning, camera-error and offline states. The amber banner identifies simulated readings. Demo mode never initializes Firebase or writes to the database. **Return to live** exits it.
+The dashboard is live-only and reads Firebase at `/orion/latest`. There is no demo mode or simulated telemetry. A stale or missing device reading clears the live values and leaves the AC preview unknown.
 
 For local use, serve the `docs` directory over HTTP using any static server; ES modules should not be opened with `file://`. For example, with Python installed:
 
@@ -120,7 +119,7 @@ The JSON above documents the schema; its values are illustrative, not live measu
 Checked on 2 October 2026:
 
 - Desktop (1440px) and phone (390px) rendering, with no horizontal overflow or browser script errors.
-- All six demo scenarios, the five-second transition, the setup dialog and 17 status edge cases. The vision checks cover inside/outside detections, visible-object labels, camera health, last-person display and the display-only AC preview.
+- Live-only page rendering, the setup dialog and 17 status edge cases. The AC preview mapping is checked for zero through crowded occupancy and unknown camera data.
 - Firmware compiled successfully for `esp32:esp32:esp32` with ESP32 core **3.3.3**, ArduinoJson **7.4.2**, PZEM library **1.2.1** and DFRobot_HuskylensV2 **1.0.9**. Flash: **1,073,127 bytes (81%)**; global RAM: **50,224 bytes (15%)**. The compile used placeholder Wi-Fi credentials.
 
 The firmware has not been uploaded to your board or tested with your physical sensors. The live Firebase connection could not be verified from this test environment; no sample readings were written to the database. GitHub Pages uses the `/docs` publishing method above.
