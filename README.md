@@ -2,7 +2,9 @@
 
 Public repository: [DeHazeium/orion-dashboard](https://github.com/DeHazeium/orion-dashboard).
 
-A responsive dashboard for your ESP32, PZEM-004T V3 and HuskyLens 2. It displays electrical readings, a five-second unattended-power warning, the monitored camera area, live recognized-object labels and positions, the last person seen, and camera health. The original AI-generated room and workspace illustrations draw inspiration from [Imran Jakir's smart-home UI](https://dribbble.com/shots/27225846-Home-Automation-App-UI-Modern-Smart-Living-Experience); they are decorative, not camera images.
+A responsive dashboard for your ESP32, PZEM-004T V3 and HuskyLens 2. It displays electrical readings, a five-second unattended-power warning, the monitored camera area, live recognized-object labels and positions, the last person seen, and camera health. Its new smart-home overview uses glass cards over original AI-generated pendant-light room art, inspired by [Imran Jakir's smart-home UI](https://dribbble.com/shots/27225846-Home-Automation-App-UI-Modern-Smart-Living-Experience). The art is decorative, not a HuskyLens camera image; there is no lighting control.
+
+The **Air conditioner** card is a display-only concept. Based on a valid current people count inside the monitored area, it previews **OFF for 0**, **24°C for 1**, **22°C for 2**, **20°C for 3**, and **16°C for 4 or more**. If camera data is missing or stale, it shows an unknown setting. The dashboard does not send an AC command, connect to an AC, or write this preview to Firebase.
 
 The dashboard is preconfigured for **orionai-552ed**. Firebase receives readings at **`/orion/latest`**. Only labels equal to `person` (case insensitive, with whitespace trimmed) whose **bounding-box centers are inside the configured monitored area** count as people. Other objects and people outside that area do not clear the warning. Their labels can still appear in the live vision panel.
 
@@ -65,7 +67,7 @@ No npm install, build command, Firebase Hosting or GitHub Actions workflow is ne
 
 ## Preview and behavior
 
-Use the site's **Explore demo** link (or append `?demo=1`) to preview person, absent, warning, camera-error and offline states. The amber banner identifies simulated readings. Demo mode never initializes Firebase or writes to the database. **Return to live** exits it.
+Use the site's **Explore demo** link (or append `?demo=1`) to preview person, crowded room, absent, warning, camera-error and offline states. The amber banner identifies simulated readings. Demo mode never initializes Firebase or writes to the database. **Return to live** exits it.
 
 For local use, serve the `docs` directory over HTTP using any static server; ES modules should not be opened with `file://`. For example, with Python installed:
 
@@ -118,7 +120,7 @@ The JSON above documents the schema; its values are illustrative, not live measu
 Checked on 2 October 2026:
 
 - Desktop (1440px) and phone (390px) rendering, with no horizontal overflow or browser script errors.
-- All five demo scenarios, the five-second transition, the setup dialog and 17 status edge cases. The vision checks cover inside/outside detections, visible-object labels, camera health and last-person display.
+- All six demo scenarios, the five-second transition, the setup dialog and 17 status edge cases. The vision checks cover inside/outside detections, visible-object labels, camera health, last-person display and the display-only AC preview.
 - Firmware compiled successfully for `esp32:esp32:esp32` with ESP32 core **3.3.3**, ArduinoJson **7.4.2**, PZEM library **1.2.1** and DFRobot_HuskylensV2 **1.0.9**. Flash: **1,073,127 bytes (81%)**; global RAM: **50,224 bytes (15%)**. The compile used placeholder Wi-Fi credentials.
 
 The firmware has not been uploaded to your board or tested with your physical sensors. The live Firebase connection could not be verified from this test environment; no sample readings were written to the database. GitHub Pages uses the `/docs` publishing method above.
