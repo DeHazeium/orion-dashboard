@@ -9,6 +9,7 @@
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./vision.css">
+  <link rel="stylesheet" href="./home.css">
 </head>
 <body>
   <div class="shell">
@@ -17,10 +18,21 @@
       <div class="header-right"><span class="project-tag">PERSONAL POWER MONITOR</span><span id="connection" class="badge neutral"><i></i>Connecting</span><button id="setup-button" class="icon-button" aria-label="Open setup guide" title="Setup guide">?</button></div>
     </header>
 
-    <div id="demo-banner" class="demo-banner" hidden><span><strong>Demo preview</strong> · Simulated readings. No data is sent to Firebase.</span><label>Scenario <select id="demo-scenario"><option value="present">Person present</option><option value="away">Person leaves</option><option value="warning">Unattended warning</option><option value="fault">Camera unavailable</option><option value="offline">Device offline</option></select></label></div>
+    <div id="demo-banner" class="demo-banner" hidden><span><strong>Demo preview</strong> · Simulated readings. No data is sent to Firebase.</span><label>Scenario <select id="demo-scenario"><option value="present">Person present</option><option value="crowded">Crowded room · 4 people</option><option value="away">Person leaves</option><option value="warning">Unattended warning</option><option value="fault">Camera unavailable</option><option value="offline">Device offline</option></select></label></div>
 
     <main>
-      <section class="page-heading hero" aria-label="ORION overview"><div class="hero-copy"><div class="eyebrow"><span class="tiny-square"></span> THE INTELLIGENT ROOM</div><h1>Power, with<br>perspective<span>.</span></h1><p>Energy meets AI vision. See what is in view, who is in the monitored area, and when power may be unattended.</p><div class="hero-tags"><span>◉ LIVE MONITORING</span><span>✳ AI VISION</span></div></div><div class="heading-meta"><span id="today"></span><a id="mode-link" href="?demo=1">Explore demo <span aria-hidden="true">↗</span></a></div><span class="image-credit">AI-generated interior illustration</span></section>
+      <section class="home-stage" aria-label="ORION smart home overview">
+        <div class="stage-top"><div class="stage-room"><span class="stage-orbit">✳</span><span>ORION HOME <small>Living room · AI awareness</small></span></div><div class="stage-actions"><span id="today"></span><a id="mode-link" class="stage-demo" href="?demo=1">Explore demo ↗</a></div></div>
+        <div class="stage-intro"><span class="stage-kicker">THE INTELLIGENT ROOM</span><h1>Hi, welcome<br>home<span>.</span></h1><p>Your space, energy and AI vision at a glance.</p></div>
+        <nav class="room-tabs" aria-label="Dashboard sections"><a class="active" href="#status-banner">Overview</a><a href="#power-heading">Energy</a><a href="#zone-heading">AI vision</a></nav>
+        <div class="smart-grid">
+          <a class="smart-card" href="#power-heading"><span class="smart-card-top"><span class="smart-icon" aria-hidden="true">ϟ</span><span class="smart-arrow" aria-hidden="true">↗</span></span><span class="smart-card-bottom"><small>Living room</small><strong>Live power</strong><span class="smart-reading"><b id="quick-power">—</b><em>W</em></span></span></a>
+          <a class="smart-card" href="#presence-heading"><span class="smart-card-top"><span class="smart-icon" aria-hidden="true">♙</span><span class="smart-arrow" aria-hidden="true">↗</span></span><span class="smart-card-bottom"><small>AI vision</small><strong>People in area</strong><span class="smart-reading"><b id="quick-people">—</b><em id="quick-people-unit">people</em></span></span></a>
+          <div class="smart-card ac-card" aria-label="Air conditioner temperature preview. Display only; no air conditioner is connected."><span class="smart-card-top"><span class="smart-icon" aria-hidden="true">❄</span><span class="smart-preview">DISPLAY ONLY</span></span><span class="smart-card-bottom"><small>Living room · simulated</small><strong>Air conditioner</strong><span class="smart-reading ac-reading"><b id="ac-temperature">—</b><em id="ac-unit">°C</em></span><span id="ac-caption" class="ac-caption">Waiting for people count</span></span></div>
+          <a class="smart-card" href="#objects-heading"><span class="smart-card-top"><span class="smart-icon" aria-hidden="true">◎</span><span class="smart-arrow" aria-hidden="true">↗</span></span><span class="smart-card-bottom"><small>HuskyLens 2</small><strong>Visible objects</strong><span class="smart-reading"><b id="quick-objects">—</b><em id="quick-camera">Camera waiting</em></span></span></a>
+        </div>
+        <div class="stage-foot"><span>✳ AI-generated pendant room artwork</span><span>AC temperature is a UI preview · no device control</span></div>
+      </section>
 
       <section id="status-banner" class="status-banner neutral" role="status" aria-live="polite"><div class="status-icon" id="status-icon">—</div><div><strong id="status-title">Waiting for your ESP32</strong><p id="status-detail">Your readings will appear when the device sends its first update.</p></div><span class="status-code" id="status-code">STANDBY</span></section>
 

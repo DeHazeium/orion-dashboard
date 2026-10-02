@@ -1,0 +1,53 @@
+:root { --bg:#111214; --panel:#202123; --border:#3c3d40; --text:#f8f8f7; --muted:#afb0b0; --mint:#eeff16; --radius:24px; }
+body { background: #111214; }
+.shell { max-width: 1460px; }
+.topbar { height: 84px; border-color: #333; }
+.brand { font-size: 23px; }
+.badge.good { color: #eeff16; background: #32381a; }
+.badge.warn { color: #f5c578; background: #3b3226; }
+.home-stage { position: relative; isolation: isolate; overflow: hidden; min-height: 760px; margin: 26px 0 22px; padding: 31px 36px 23px; border: 1px solid #6e6e6a; border-radius: 35px; background: #252526 url('./assets/orion-pendant-room.jpg') center 42% / cover; box-shadow: 0 28px 90px #0008; }
+.home-stage::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg, #111214a8 0%, #11121439 47%, #111214ad 100%), linear-gradient(0deg, #0d0e10dc 0%, #0d0e1055 48%, #0d0e1078 100%); }
+.home-stage::after { content: ''; position: absolute; z-index: -1; inset: 0; background: radial-gradient(circle at 56% 16%, #ffe69c12, transparent 24%); pointer-events: none; }
+.stage-top,.stage-room,.stage-actions,.stage-foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.stage-room { justify-content: flex-start; color: #fff; font: 600 18px 'Space Grotesk',sans-serif; letter-spacing: .2px; }
+.stage-room small { display: block; margin-top: 4px; color: #d7d7d4; font: 400 11px 'DM Sans',sans-serif; letter-spacing: .4px; }
+.stage-orbit { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid #ffffff88; border-radius: 50%; background: #ffffff22; backdrop-filter: blur(12px); color: var(--mint); font-size: 22px; }
+.stage-actions { color: #e1e1df; font-size: 12px; }
+.stage-demo { padding: 11px 15px; border: 1px solid #ffffff8a; border-radius: 30px; background: #ffffff22; color: white; backdrop-filter: blur(12px); font-weight: 600; white-space: nowrap; }
+.stage-demo:hover { border-color: var(--mint); color: var(--mint); }
+.stage-intro { margin-top: 70px; max-width: 480px; text-shadow: 0 3px 18px #000b; }
+.stage-kicker { color: var(--mint); font-size: 11px; font-weight: 700; letter-spacing: 2px; }
+.stage-intro h1 { margin: 12px 0 14px; font: 500 clamp(48px,5vw,76px)/.99 'Space Grotesk',sans-serif; letter-spacing: -3.5px; }
+.stage-intro h1 span { color: var(--mint); }
+.stage-intro p { color: #ededeb; font-size: 15px; }
+.room-tabs { display: flex; width: fit-content; gap: 9px; margin-top: 28px; }
+.room-tabs a { display: grid; place-items: center; min-height: 43px; padding: 0 20px; border: 1px solid #ffffff75; border-radius: 30px; background: #ffffff24; color: #fff; backdrop-filter: blur(15px); font-size: 13px; }
+.room-tabs a.active { background: #f7f7f5; border-color: #fff; color: #1a1b1b; }
+.room-tabs a:hover { border-color: var(--mint); }
+.smart-grid { position: relative; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 13px; margin-top: 32px; }
+.smart-card { display: flex; min-width: 0; min-height: 240px; flex-direction: column; justify-content: space-between; padding: 18px; border: 1px solid #ffffff68; border-radius: 28px; background: linear-gradient(135deg,#ffffff38,#ffffff12 65%); box-shadow: inset 0 1px #ffffff2e,0 12px 26px #0003; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: #fff; transition: transform .2s,border-color .2s; }
+a.smart-card:hover { transform: translateY(-4px); border-color: #ffffffcf; }
+.smart-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.smart-icon,.smart-arrow { display: grid; place-items: center; flex: 0 0 auto; width: 50px; height: 50px; border: 1px solid #ffffff75; border-radius: 50%; background: #ffffff31; box-shadow: inset 0 1px #ffffff38; font: 400 23px 'Space Grotesk',sans-serif; }
+.smart-arrow { width: 42px; height: 42px; font-size: 19px; }
+.smart-card-bottom { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.smart-card-bottom small { color: #e2e2df; font-size: 11px; }
+.smart-card-bottom strong { margin-top: 4px; font: 500 20px/1.15 'Space Grotesk',sans-serif; letter-spacing: -.5px; }
+.smart-reading { display: flex; align-items: baseline; gap: 6px; margin-top: 15px; min-height: 40px; }
+.smart-reading b { color: var(--mint); font: 500 36px/.95 'Space Grotesk',sans-serif; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.smart-reading em { color: #efefec; font-size: 12px; font-style: normal; }
+.ac-card { border-color: #efff647d; background: linear-gradient(135deg,#5a633d99,#24282692 72%); }
+.ac-card .smart-icon { background: var(--mint); border-color: var(--mint); color: #161a10; }
+.smart-preview { align-self: center; padding: 6px 8px; border: 1px solid #eeff16a1; border-radius: 20px; color: var(--mint); font-size: 9px; font-weight: 800; letter-spacing: .5px; white-space: nowrap; }
+.ac-reading b { font-size: 48px; }
+.ac-reading em { font-size: 20px; }
+.ac-caption { min-height: 24px; color: #e8e8e3; font-size: 11px; line-height: 1.3; }
+.stage-foot { margin-top: 31px; color: #e7e7e2b8; font-size: 10px; letter-spacing: .3px; }
+.status-banner { border-radius: 20px; }
+.panel { background: #202123; border-color: #393b3d; }
+.objects-art { background-image: linear-gradient(90deg,#111214ed 0%,#161717b3 44%,#0000 100%),url('./assets/orion-workspace.jpg'); }
+.metric-symbol,.insight-icon { background: #3b4130; }
+.zone-stage { background: radial-gradient(circle at 50% 50%,#363b2b,#191b19 70%); }
+@media(max-width:1050px) { .smart-grid { grid-template-columns: repeat(2,minmax(0,1fr)); width: min(630px,100%); margin-left: auto; } .home-stage { min-height: 880px; } .stage-intro { margin-top: 50px; } .smart-card { min-height: 175px; } }
+@media(max-width:760px) { .home-stage { margin: 15px -4px 18px; min-height: 0; padding: 22px 18px 20px; border-radius: 30px; background-position: center top; background-size: auto 640px; background-repeat: no-repeat; } .home-stage::before { background: linear-gradient(0deg,#0d0e10f2 0%,#0d0e10c4 48%,#0d0e1042 100%); } .stage-top { align-items: flex-start; } .stage-room { font-size: 14px; } .stage-room small { font-size: 10px; } .stage-orbit { width: 40px; height: 40px; } .stage-actions > span { display: none; } .stage-demo { padding: 9px 11px; font-size: 11px; } .stage-intro { margin-top: 215px; } .stage-intro h1 { font-size: clamp(42px,12vw,56px); } .stage-intro p { font-size: 13px; } .room-tabs { margin-top: 26px; } .room-tabs a { min-height: 40px; padding: 0 15px; font-size: 12px; } .smart-grid { width: 100%; gap: 10px; margin-top: 22px; } .smart-card { min-height: 176px; padding: 13px; border-radius: 23px; } .smart-icon { width: 39px; height: 39px; font-size: 20px; } .smart-arrow { width: 34px; height: 34px; font-size: 16px; } .smart-card-bottom strong { font-size: 17px; } .smart-reading { margin-top: 9px; min-height: 32px; } .smart-reading b { font-size: 30px; } .ac-reading b { font-size: 37px; } .smart-preview { font-size: 8px; padding: 5px; } .stage-foot { margin-top: 19px; line-height: 1.4; } .stage-foot span:first-child { display: none; } }
+@media(max-width:390px) { .home-stage { padding-left: 15px; padding-right: 15px; } .smart-card { min-height: 169px; } .smart-card-bottom strong { font-size: 16px; } .smart-reading b { font-size: 28px; } .smart-reading em { font-size: 10px; } .ac-reading b { font-size: 35px; } .smart-preview { font-size: 7px; } }

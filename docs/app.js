@@ -9,6 +9,8 @@ const time = value => new Date(value).toLocaleTimeString([], { hour: '2-digit', 
 const number = (value, digits = 1) => finite(value) && value >= 0 ? value.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits }) : '—';
 const setText = (id, value) => { $(id).textContent = value; };
 const now = () => Date.now() + serverOffset;
+// Display-only concept: this value is never sent to Firebase or an AC device.
+const previewTemperature = people => people === null ? null : people === 0 ? 'OFF' : people === 1 ? 24 : people === 2 ? 22 : people === 3 ? 20 : 16;
 
 $('today').textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
 $('setup-button').addEventListener('click', () => $('setup-dialog').showModal());
@@ -72,6 +74,8 @@ function renderVision(fresh, cameraOK) {
     grouped.set(key, { name, count: (grouped.get(key)?.count || 0) + 1 });
   }
   setText('object-total', usable ? `${detections.length} detected` : '—');
+  setText('quick-objects', usable ? String(detections.length) : '—');
+  setText('quick-camera', usable ? 'in camera view' : cameraOK ? 'Labels unavailable' : 'Camera unavailable');
   if (!usable || grouped.size === 0) {
     const message = document.createElement('p');
     message.className = 'muted';
@@ -116,9 +120,16 @@ function render() {
   $('connection').className = `badge ${demo ? 'warn' : error ? 'bad' : fresh ? 'good' : 'neutral'}`;
   $('connection').replaceChildren(Object.assign(document.createElement('i')), document.createTextNode(linkText));
   setText('power-value', powerOK ? number(latest.power) : '—');
+  setText('quick-power', powerOK ? number(latest.power, 0) : '—');
   for (const [key, digits] of [['voltage', 1], ['current', 3], ['energy', 3], ['frequency', 1], ['pf', 2]]) setText(`${key}-value`, powerOK ? number(latest[key], digits) : '—');
   setText('threshold-label', finite(latest?.thresholdW) ? `${latest.thresholdW} W` : '—');
   const people = cameraOK ? latest.people : null;
+  setText('quick-people', people ?? '—');
+  setText('quick-people-unit', people === 1 ? 'person' : 'people');
+  const temperature = previewTemperature(people);
+  setText('ac-temperature', temperature ?? '—');
+  setText('ac-unit', typeof temperature === 'number' ? '°C' : '');
+  setText('ac-caption', people === null ? 'Waiting for valid AI count' : people === 0 ? 'No people · standby preview' : `${people} ${people === 1 ? 'person' : 'people'} · suggested setting`);
   setText('person-count', people ?? '—');
   $('presence-visual').className = `presence-visual ${people === null ? 'unknown' : people > 0 ? 'present' : 'absent'}`;
   setText('presence-title', people === null ? 'Presence unknown' : people > 0 ? `${people} ${people === 1 ? 'person' : 'people'} in view` : 'No person in view');
@@ -211,13 +222,18 @@ function startDemo() {
   const sample = () => {
     const scenario = $('demo-scenario').value;
     const elapsed = scenario === 'warning' ? 5000 : scenario === 'away' ? Math.min(Date.now() - awaySince, 5000) : 0;
-    if (scenario === 'present') demoLastSeenAt = Date.now();
+    if (scenario === 'present' || scenario === 'crowded') demoLastSeenAt = Date.now();
     const detections = scenario === 'fault' ? [] : [
       { label: 'TV', x: 482, y: 154, width: 110, height: 78, inZone: true },
       { label: 'laptop', x: 178, y: 334, width: 98, height: 65, inZone: true },
-      ...(scenario === 'present' ? [{ label: 'person', x: 316, y: 228, width: 86, height: 270, inZone: true }] : scenario === 'away' ? [{ label: 'person', x: 30, y: 210, width: 60, height: 250, inZone: false }] : [])
+      ...(scenario === 'present' ? [{ label: 'person', x: 316, y: 228, width: 86, height: 270, inZone: true }] : scenario === 'crowded' ? [
+        { label: 'person', x: 140, y: 220, width: 62, height: 250, inZone: true },
+        { label: 'person', x: 255, y: 226, width: 66, height: 260, inZone: true },
+        { label: 'person', x: 370, y: 222, width: 65, height: 253, inZone: true },
+        { label: 'person', x: 520, y: 220, width: 62, height: 249, inZone: true }
+      ] : scenario === 'away' ? [{ label: 'person', x: 30, y: 210, width: 60, height: 250, inZone: false }] : [])
     ];
-    receive({ schemaVersion: 1, sampledAt: Date.now() - (scenario === 'offline' ? 30000 : 0), power: 77.4 + 4 * Math.sin(Date.now() / 4100), voltage: 233.1, current: 0.348, energy: 1.284, frequency: 50.0, pf: 0.96, people: scenario === 'present' ? 1 : 0, peopleOutsideZone: scenario === 'away' ? 1 : 0, cameraOnline: scenario !== 'fault', labelsValid: scenario !== 'fault', pzemOnline: true, thresholdW: 10, warningDelayMs: 5000, unattendedMs: elapsed, zone, lastPersonSeenAt: demoLastSeenAt, detections });
+    receive({ schemaVersion: 1, sampledAt: Date.now() - (scenario === 'offline' ? 30000 : 0), power: 77.4 + 4 * Math.sin(Date.now() / 4100), voltage: 233.1, current: 0.348, energy: 1.284, frequency: 50.0, pf: 0.96, people: scenario === 'present' ? 1 : scenario === 'crowded' ? 4 : 0, peopleOutsideZone: scenario === 'away' ? 1 : 0, cameraOnline: scenario !== 'fault', labelsValid: scenario !== 'fault', pzemOnline: true, thresholdW: 10, warningDelayMs: 5000, unattendedMs: elapsed, zone, lastPersonSeenAt: demoLastSeenAt, detections });
   };
   for (let i = 150; i > 0; i--) points.push({ t: Date.now() - i * 2000, p: 77 + 4 * Math.sin(i / 8) + 2 * Math.cos(i / 2) });
   $('demo-scenario').addEventListener('change', () => { awaySince = Date.now(); sample(); });
