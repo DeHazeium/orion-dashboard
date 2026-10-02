@@ -13,8 +13,20 @@ body { background: #111214; }
 .stage-room small { display: block; margin-top: 4px; color: #d7d7d4; font: 400 11px 'DM Sans',sans-serif; letter-spacing: .4px; }
 .stage-orbit { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid #ffffff88; border-radius: 50%; background: #ffffff22; backdrop-filter: blur(12px); color: var(--mint); font-size: 22px; }
 .stage-actions { color: #e1e1df; font-size: 12px; }
-.stage-demo { padding: 11px 15px; border: 1px solid #ffffff8a; border-radius: 30px; background: #ffffff22; color: white; backdrop-filter: blur(12px); font-weight: 600; white-space: nowrap; }
-.stage-demo:hover { border-color: var(--mint); color: var(--mint); }
+.ui-icon { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.stage-orbit .ui-icon { width: 25px; height: 25px; }
+.smart-icon .ui-icon { width: 25px; height: 25px; }
+.smart-arrow .ui-icon { width: 20px; height: 20px; }
+.label-icon .ui-icon { width: 20px; height: 20px; }
+.insight-icon .ui-icon { width: 23px; height: 23px; }
+.device-icon .ui-icon { width: 16px; height: 16px; }
+.metric-symbol { display: grid; place-items: center; }
+.metric-symbol .ui-icon { width: 15px; height: 15px; }
+.icon-button .ui-icon { width: 17px; height: 17px; }
+.status-icon .ui-icon { width: 18px; height: 18px; }
+.live-pill { display: inline-flex; align-items: center; gap: 7px; padding: 10px 13px; border: 1px solid #eeff1699; border-radius: 30px; background: #18200fba; color: var(--mint); font-size: 10px; font-weight: 800; letter-spacing: 1px; white-space: nowrap; }
+.live-pill i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 9px currentColor; }
+.object-chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
 .stage-intro { margin-top: 70px; max-width: 480px; text-shadow: 0 3px 18px #000b; }
 .stage-kicker { color: var(--mint); font-size: 11px; font-weight: 700; letter-spacing: 2px; }
 .stage-intro h1 { margin: 12px 0 14px; font: 500 clamp(48px,5vw,76px)/.99 'Space Grotesk',sans-serif; letter-spacing: -3.5px; }
@@ -49,5 +61,5 @@ a.smart-card:hover { transform: translateY(-4px); border-color: #ffffffcf; }
 .metric-symbol,.insight-icon { background: #3b4130; }
 .zone-stage { background: radial-gradient(circle at 50% 50%,#363b2b,#191b19 70%); }
 @media(max-width:1050px) { .smart-grid { grid-template-columns: repeat(2,minmax(0,1fr)); width: min(630px,100%); margin-left: auto; } .home-stage { min-height: 880px; } .stage-intro { margin-top: 50px; } .smart-card { min-height: 175px; } }
-@media(max-width:760px) { .home-stage { margin: 15px -4px 18px; min-height: 0; padding: 22px 18px 20px; border-radius: 30px; background-position: center top; background-size: auto 640px; background-repeat: no-repeat; } .home-stage::before { background: linear-gradient(0deg,#0d0e10f2 0%,#0d0e10c4 48%,#0d0e1042 100%); } .stage-top { align-items: flex-start; } .stage-room { font-size: 14px; } .stage-room small { font-size: 10px; } .stage-orbit { width: 40px; height: 40px; } .stage-actions > span { display: none; } .stage-demo { padding: 9px 11px; font-size: 11px; } .stage-intro { margin-top: 215px; } .stage-intro h1 { font-size: clamp(42px,12vw,56px); } .stage-intro p { font-size: 13px; } .room-tabs { margin-top: 26px; } .room-tabs a { min-height: 40px; padding: 0 15px; font-size: 12px; } .smart-grid { width: 100%; gap: 10px; margin-top: 22px; } .smart-card { min-height: 176px; padding: 13px; border-radius: 23px; } .smart-icon { width: 39px; height: 39px; font-size: 20px; } .smart-arrow { width: 34px; height: 34px; font-size: 16px; } .smart-card-bottom strong { font-size: 17px; } .smart-reading { margin-top: 9px; min-height: 32px; } .smart-reading b { font-size: 30px; } .ac-reading b { font-size: 37px; } .smart-preview { font-size: 8px; padding: 5px; } .stage-foot { margin-top: 19px; line-height: 1.4; } .stage-foot span:first-child { display: none; } }
+@media(max-width:760px) { .home-stage { margin: 15px -4px 18px; min-height: 0; padding: 22px 18px 20px; border-radius: 30px; background-position: center top; background-size: auto 640px; background-repeat: no-repeat; } .home-stage::before { background: linear-gradient(0deg,#0d0e10f2 0%,#0d0e10c4 48%,#0d0e1042 100%); } .stage-top { align-items: flex-start; } .stage-room { font-size: 14px; } .stage-room small { font-size: 10px; } .stage-orbit { width: 40px; height: 40px; } .stage-actions #today { display: none; } .stage-intro { margin-top: 215px; } .stage-intro h1 { font-size: clamp(42px,12vw,56px); } .stage-intro p { font-size: 13px; } .room-tabs { margin-top: 26px; } .room-tabs a { min-height: 40px; padding: 0 15px; font-size: 12px; } .smart-grid { width: 100%; gap: 10px; margin-top: 22px; } .smart-card { min-height: 176px; padding: 13px; border-radius: 23px; } .smart-icon { width: 39px; height: 39px; font-size: 20px; } .smart-arrow { width: 34px; height: 34px; font-size: 16px; } .smart-card-bottom strong { font-size: 17px; } .smart-reading { margin-top: 9px; min-height: 32px; } .smart-reading b { font-size: 30px; } .ac-reading b { font-size: 37px; } .smart-preview { font-size: 8px; padding: 5px; } .stage-foot { margin-top: 19px; line-height: 1.4; } .stage-foot span:first-child { display: none; } }
 @media(max-width:390px) { .home-stage { padding-left: 15px; padding-right: 15px; } .smart-card { min-height: 169px; } .smart-card-bottom strong { font-size: 16px; } .smart-reading b { font-size: 28px; } .smart-reading em { font-size: 10px; } .ac-reading b { font-size: 35px; } .smart-preview { font-size: 7px; } }
